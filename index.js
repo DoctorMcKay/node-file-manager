@@ -40,6 +40,11 @@ FileStorage.prototype.isEnabled = function() {
  * @param {function} [callback] - Called when the file is saved or an error occurs
  */
 FileStorage.prototype.saveFile = FileStorage.prototype.writeFile = function(filename, contents, callback) {
+	if(!this.isEnabled()) {
+		callback(new Error("File storage system is not enabled"));
+		return;
+	}
+
 	if(typeof contents === 'string') {
 		contents = new Buffer(contents, 'utf8');
 	}
@@ -78,6 +83,11 @@ FileStorage.prototype.saveFiles = FileStorage.prototype.writeFiles = function(fi
  * @param {function} callback - Called when read, first argument is an Error object or null, second is a Buffer object
  */
 FileStorage.prototype.readFile = function(filename, callback) {
+	if(!this.isEnabled()) {
+		callback(new Error("File storage system is not enabled"));
+		return;
+	}
+
 	if(this.listeners('read').length > 0) {
 		this.emit('read', filename, callback);
 		return;
