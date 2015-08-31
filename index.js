@@ -26,6 +26,14 @@ function FileStorage(directory) {
 }
 
 /**
+ * Checks whether or not the FileStorage object can store and retrieve files.
+ * @returns bool
+ */
+FileStorage.prototype.isEnabled = function() {
+	return (this.listeners('save').length > 0 && this.listeners('read').length > 0) || this.directory !== null;
+};
+
+/**
  * Saves a file
  * @param {string} filename - The name of the file
  * @param {Buffer|string} contents - The contents of the file
