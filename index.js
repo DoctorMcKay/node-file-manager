@@ -41,7 +41,10 @@ FileStorage.prototype.isEnabled = function() {
  */
 FileStorage.prototype.saveFile = FileStorage.prototype.writeFile = function(filename, contents, callback) {
 	if(!this.isEnabled()) {
-		callback(new Error("File storage system is not enabled"));
+		if(callback) {
+			callback(new Error("File storage system is not enabled"));
+		}
+		
 		return;
 	}
 
