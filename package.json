@@ -1,5 +1,7 @@
 {
-	"name": "file-storage",
+	"name": "file-manager",
+	"description": "File storage to disk, with optional handlers to redirect storage",
+	"author": "Alexander Corn <mckay@doctormckay.com>",
 	"version": "1.0.0",
 	"repository": {
 		"type": "git",
@@ -8,5 +10,5 @@
 	"dependencies": {
 		"async": "^1.4.2"
 	},
-	"private": true
+	"license": "MIT"
 }
