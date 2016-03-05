@@ -135,7 +135,7 @@ function checkDirExists(dir) {
 		}
 
 		if(!fs.existsSync(path)) {
-			fs.mkdirSync(path, 0750);
+			fs.mkdirSync(path, 0o750);
 		}
 	});
 }
