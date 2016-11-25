@@ -65,7 +65,7 @@ FileStorage.prototype.saveFile = FileStorage.prototype.writeFile = function(file
 	checkDirExists(this.directory);
 	this._directoryCreated = true;
 
-	fs.writeFile(this.directory + '/' + filename, contents, callback);
+	fs.writeFile(this.directory + '/' + filename, contents, callback || noop);
 };
 
 /**
@@ -77,7 +77,7 @@ FileStorage.prototype.saveFiles = FileStorage.prototype.writeFiles = function(fi
 	var self = this;
 	Async.each(Object.keys(files), function(filename, cb) {
 		self.saveFile(filename, files[filename], cb);
-	}, callback || function() { });
+	}, callback || noop);
 };
 
 /**
@@ -138,4 +138,8 @@ function checkDirExists(dir) {
 			fs.mkdirSync(path, 0o750);
 		}
 	});
+}
+
+function noop() {
+	// hello
 }
