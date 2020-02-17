@@ -19,7 +19,7 @@ declare module 'file-manager' {
 	type SaveEventListener = (filename: string, contents: string, callback: SaveEventCallbackParameter) => void;
 
 
-	class FileManager extends Events.EventEmitter {
+	export default class FileManager extends Events.EventEmitter {
 		public directory: string;
 
 		constructor(storageDirectory: string | null);
