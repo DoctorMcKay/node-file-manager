@@ -1,5 +1,7 @@
+const {AsyncQueue} = require('@doctormckay/stdlib').DataStructures;
 const {EventEmitter} = require('events');
 const FS = require('fs');
+const Path = require('path');
 const Util = require('util');
 
 Util.inherits(FileManager, EventEmitter);
@@ -22,11 +24,13 @@ function FileManager(directory) {
 
 	this._directory = null;
 	this.directory = directory;
+
+	this._workerQueue = new AsyncQueue(this._work.bind(this), 100);
 }
 
 /**
  * Checks whether or not the FileManager object can store and retrieve files.
- * @returns bool
+ * @returns {boolean}
  */
 FileManager.prototype.isEnabled = function() {
 	return (this.listeners('save').length > 0 && this.listeners('read').length > 0) || this.directory !== null;
@@ -60,14 +64,16 @@ FileManager.prototype.saveFile = FileManager.prototype.writeFile = function(file
 			return;
 		}
 
-		checkDirExists(this.directory);
-
-		FS.writeFile(this.directory + '/' + filename, contents, (err) => {
+		this._workerQueue.push({
+			task: 'write',
+			filename,
+			contents
+		}, (err) => {
 			if (err) {
-				reject(err);
-			} else {
-				resolve();
+				return reject(err);
 			}
+
+			resolve();
 		});
 	});
 };
@@ -111,12 +117,15 @@ FileManager.prototype.readFile = function(filename) {
 			return;
 		}
 
-		FS.readFile(this.directory + '/' + filename, (err, content) => {
+		this._workerQueue.push({
+			task: 'read',
+			filename
+		}, (err, content) => {
 			if (err) {
-				reject(err);
-			} else {
-				resolve(content);
+				return reject(err);
 			}
+
+			resolve(content);
 		});
 	});
 };
@@ -139,21 +148,34 @@ FileManager.prototype.readFiles = function(filenames) {
 	}));
 };
 
-function checkDirExists(dir) {
-	if (!dir) {
-		return;
+FileManager.prototype._work = function(job, callback) {
+	switch (job.task) {
+		case 'read':
+			FS.readFile(Path.join(this.directory, job.filename), callback);
+			break;
+
+		case 'write':
+			FS.writeFile(Path.join(this.directory, job.filename), job.contents, (err) => {
+				if (err && err.code == 'ENOENT' && !job.retry) {
+					// The root directory doesn't exist. Let's create it.
+					FS.mkdir(this.directory, {recursive: true, mode: 0o750}, (err) => {
+						if (err) {
+							return callback(err);
+						}
+
+						// Directory created successfully.
+						this._work(Object.assign(job, {retry: true}), callback);
+					});
+
+					return;
+				}
+
+				callback(err);
+			});
+
+			break;
+
+		default:
+			throw new Error(`Unknown task: ${job.task}`);
 	}
-
-	let path = '';
-	dir.replace(/\\/g, '/').split('/').forEach(function(dir, index) {
-		if (index === 0 && !dir) {
-			path = '/';
-		} else {
-			path += (path ? '/' : '') + dir;
-		}
-
-		if (!FS.existsSync(path)) {
-			FS.mkdirSync(path, 0o750);
-		}
-	});
-}
+};
