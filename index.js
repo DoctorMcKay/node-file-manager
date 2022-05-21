@@ -2,6 +2,7 @@ const {AsyncQueue} = require('@doctormckay/stdlib').DataStructures;
 const {EventEmitter} = require('events');
 const FS = require('fs');
 const Path = require('path');
+const Promise = require('bluebird');
 const Util = require('util');
 
 Util.inherits(FileManager, EventEmitter);
@@ -84,14 +85,7 @@ FileManager.prototype.saveFile = FileManager.prototype.writeFile = function(file
  * @return {Promise}
  */
 FileManager.prototype.saveFiles = FileManager.prototype.writeFiles = function(files) {
-	return new Promise(async (resolve, reject) => {
-		try {
-			await Promise.all(Object.keys(files).map(filename => this.saveFile(filename, files[filename])));
-			resolve();
-		} catch (ex) {
-			reject(ex);
-		}
-	});
+	return Promise.map(Object.keys(files), (filename) => this.saveFile(filename, files[filename]), {concurrency: 10});
 };
 
 /**
@@ -136,7 +130,7 @@ FileManager.prototype.readFile = function(filename) {
  * @return {Promise<Array>} - Array with same order as input array, each element is an object with filename and contents properties.
  */
 FileManager.prototype.readFiles = function(filenames) {
-	return Promise.all(filenames.map((filename) => {
+	return Promise.map(filenames, (filename) => {
 		return new Promise(async (resolve, reject) => {
 			try {
 				let contents = await this.readFile(filename);
@@ -145,7 +139,7 @@ FileManager.prototype.readFiles = function(filenames) {
 				resolve({filename, error});
 			}
 		});
-	}));
+	}, {concurrency: 10});
 };
 
 FileManager.prototype._work = function(job, callback) {
