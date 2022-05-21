@@ -1,6 +1,6 @@
 const {AsyncQueue} = require('@doctormckay/stdlib').DataStructures;
 const {EventEmitter} = require('events');
-const FS = require('fs');
+const FS = require('graceful-fs');
 const Path = require('path');
 const Util = require('util');
 
