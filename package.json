@@ -8,7 +8,8 @@
 		"url": "https://github.com/DoctorMcKay/node-file-manager.git"
 	},
 	"dependencies": {
-		"@doctormckay/stdlib": "^1.14.1"
+		"@doctormckay/stdlib": "^1.14.1",
+		"bluebird": "^3.7.2"
 	},
 	"engines": {
 		"node": ">=8.0.0"
